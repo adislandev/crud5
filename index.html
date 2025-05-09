@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CRUD Supabase - Nomes</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f5f5f5;
+      margin: 2rem;
+    }
+    h1 {
+      color: #333;
+    }
+    form {
+      margin-bottom: 1rem;
+    }
+    input, button {
+      padding: 0.5rem;
+      margin-right: 0.5rem;
+    }
+    ul {
+      list-style-type: none;
+      padding-left: 0;
+    }
+    li {
+      background: #fff;
+      margin-bottom: 0.5rem;
+      padding: 0.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-radius: 4px;
+    }
+    .actions button {
+      margin-left: 0.5rem;
+    }
+  </style>
+</head>
+<body>
+
+<h1>CRUD com Supabase</h1>
+
+<form id="form">
+  <input type="text" id="nome" placeholder="Digite um nome" required />
+  <button type="submit">Salvar</button>
+</form>
+
+<ul id="lista-nomes"></ul>
+
+<!-- Lib oficial do Supabase -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+<script>
+  // 🔧 Configuração do Supabase
+  const SUPABASE_URL = 'https://iyidlhsbnjnkvnfpovnf.supabase.co'; // 🔁 Substitua
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml5aWRsaHNibmpua3ZuZnBvdm5mIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDY3OTIyOTksImV4cCI6MjA2MjM2ODI5OX0.3xlXDH_8JBf3FhVApBJ0u_nS7MONtd7j0btoPeG6ecc'; // 🔁 Substitua
+  const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  const form = document.getElementById('form');
+  const nomeInput = document.getElementById('nome');
+  const lista = document.getElementById('lista-nomes');
+
+  let editandoId = null;
+
+  // 🔃 Carregar nomes ao iniciar
+  async function carregarNomes() {
+    const { data, error } = await supabase.from('nomes').select('*').order('nome');
+    if (error) {
+      alert('Erro ao carregar nomes: ' + error.message);
+    } else {
+      lista.innerHTML = '';
+      data.forEach(item => {
+        const li = document.createElement('li');
+        li.innerHTML = `
+          <span>${item.nome}</span>
+          <div class="actions">
+            <button onclick="editarNome('${item.id}', '${item.nome}')">✏️</button>
+            <button onclick="deletarNome('${item.id}')">🗑️</button>
+          </div>
+        `;
+        lista.appendChild(li);
+      });
+    }
+  }
+
+  // 💾 Criar ou atualizar nome
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const nome = nomeInput.value.trim();
+    if (!nome) return;
+
+    if (editandoId) {
+      // Atualizar
+      const { error } = await supabase.from('nomes').update({ nome }).eq('id', editandoId);
+      if (error) alert('Erro ao atualizar: ' + error.message);
+      editandoId = null;
+    } else {
+      // Criar novo
+      const { error } = await supabase.from('nomes').insert([{ nome }]);
+      if (error) alert('Erro ao salvar: ' + error.message);
+    }
+
+    nomeInput.value = '';
+    carregarNomes();
+  });
+
+  // 🧽 Editar
+  window.editarNome = (id, nome) => {
+    nomeInput.value = nome;
+    nomeInput.focus();
+    editandoId = id;
+  };
+
+  // ❌ Deletar
+  window.deletarNome = async (id) => {
+    const { error } = await supabase.from('nomes').delete().eq('id', id);
+    if (error) alert('Erro ao deletar: ' + error.message);
+    carregarNomes();
+  };
+
+  // Iniciar carregamento
+  carregarNomes();
+</script>
+</body>
+</html>
