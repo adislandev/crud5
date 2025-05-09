@@ -1,0 +1,43 @@
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #f8f9fa; /* Cor de fundo suave do Bootstrap */
+}
+
+.container {
+  max-width: 700px; /* Aumentar um pouco a largura máxima para melhor visualização */
+  background-color: #ffffff;
+  padding: 2rem;
+  border-radius: 0.5rem;
+  box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075); /* Sombra sutil do Bootstrap */
+}
+
+#listaNomes li span {
+  flex-grow: 1;
+  margin-right: 1rem; /* Espaço entre o nome e os botões */
+}
+
+.actions .btn {
+  display: inline-flex; /* Para alinhar ícone e texto verticalmente */
+  align-items: center;
+  justify-content: center;
+}
+
+.actions .btn svg {
+  margin-right: 0.35rem; /* Espaço entre o ícone e o texto do botão */
+}
+
+/* Efeito de hover para botões de ação na lista */
+#listaNomes .actions .btn-outline-secondary:hover {
+  background-color: #6c757d;
+  color: #fff;
+}
+
+#listaNomes .actions .btn-outline-danger:hover {
+  background-color: #dc3545;
+  color: #fff;
+}
+
+/* Ajuste para o botão de adicionar/atualizar */
+#btnSalvar svg {
+  margin-right: 0.35rem;
+} 

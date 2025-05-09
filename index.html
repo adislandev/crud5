@@ -2,39 +2,29 @@
 <html lang="pt-br">
 <head>
   <meta charset="UTF-8" />
-  <title>CRUD com Supabase</title>
-  <style>
-    body {
-      font-family: sans-serif;
-      max-width: 600px;
-      margin: 2rem auto;
-      padding: 1rem;
-    }
-    input, button {
-      padding: 0.5rem;
-      margin: 0.25rem 0;
-      width: 100%;
-    }
-    ul {
-      list-style: none;
-      padding: 0;
-    }
-    li {
-      margin: 0.5rem 0;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .actions button {
-      margin-left: 0.5rem;
-    }
-  </style>
+  <title>CRUD com Supabase e Bootstrap</title>
+  <!-- Bootstrap CSS -->
+  <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <h1>Cadastro de Nomes</h1>
-  <input type="text" id="nomeInput" placeholder="Digite um nome" />
-  <button onclick="adicionarNome()">Salvar</button>
-  <ul id="listaNomes"></ul>
+  <div class="container mt-5">
+    <h1 class="mb-4 text-center">Cadastro de Nomes</h1>
+    <div class="input-group mb-3">
+      <input type="text" id="nomeInput" class="form-control" placeholder="Digite um nome">
+      <input type="hidden" id="editIdInput"> <!-- Campo oculto para armazenar o ID em edição -->
+      <div class="input-group-append">
+        <button class="btn btn-primary" onclick="salvarOuAtualizarNome()" id="btnSalvar">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-plus-lg" viewBox="0 0 16 16">
+            <path fill-rule="evenodd" d="M8 2a.5.5 0 0 1 .5.5v5h5a.5.5 0 0 1 0 1h-5v5a.5.5 0 0 1-1 0v-5h-5a.5.5 0 0 1 0-1h5v-5A.5.5 0 0 1 8 2"/>
+          </svg>
+          Adicionar
+        </button>
+      </div>
+    </div>
+    <ul id="listaNomes" class="list-group"></ul>
+  </div>
 
   <script>
     const SUPABASE_URL = 'https://iyidlhsbnjnkvnfpovnf.supabase.co'; // Altere aqui
@@ -45,56 +35,110 @@
       'Content-Type': 'application/json'
     };
 
+    const nomeInput = document.getElementById('nomeInput');
+    const editIdInput = document.getElementById('editIdInput');
+    const btnSalvar = document.getElementById('btnSalvar');
+    const listaNomesUI = document.getElementById('listaNomes');
+
+    // Ícones SVG para os botões
+    const iconAdicionar = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-plus-lg" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M8 2a.5.5 0 0 1 .5.5v5h5a.5.5 0 0 1 0 1h-5v5a.5.5 0 0 1-1 0v-5h-5a.5.5 0 0 1 0-1h5v-5A.5.5 0 0 1 8 2"/></svg> Adicionar';
+    const iconAtualizar = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-check-lg" viewBox="0 0 16 16"><path d="M12.736 3.97a.733.733 0 0 1 1.047 0c.286.289.29.756.01 1.05L7.88 12.01a.733.733 0 0 1-1.065.02L3.217 8.384a.757.757 0 0 1 0-1.06.733.733 0 0 1 1.047 0l3.052 3.093 5.4-6.425z"/></svg> Atualizar';
+    const iconEditar = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-pencil-square" viewBox="0 0 16 16"><path d="M15.502 1.94a.5.5 0 0 1 0 .706L14.459 3.69l-2-2L13.502.646a.5.5 0 0 1 .707 0l1.293 1.293zm-1.75 2.456-2-2L4.939 9.21a.5.5 0 0 0-.121.196l-.805 2.414a.25.25 0 0 0 .316.316l2.414-.805a.5.5 0 0 0 .196-.12l6.813-6.814z"/><path fill-rule="evenodd" d="M1 13.5A1.5 1.5 0 0 0 2.5 15h11a1.5 1.5 0 0 0 1.5-1.5v-6a.5.5 0 0 0-1 0v6a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5H9a.5.5 0 0 0 0-1H2.5A1.5 1.5 0 0 0 1 2.5z"/></svg>';
+    const iconExcluir = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash3-fill" viewBox="0 0 16 16"><path d="M11 1.5v1h3.5a.5.5 0 0 1 0 1h-.538l-.853 10.66A2 2 0 0 1 11.115 16h-6.23a2 2 0 0 1-1.994-1.84L2.038 3.5H1.5a.5.5 0 0 1 0-1H5v-1A1.5 1.5 0 0 1 6.5 0h3A1.5 1.5 0 0 1 11 1.5m-5 0v1h4v-1a.5.5 0 0 0-.5-.5h-3a.5.5 0 0 0-.5.5M4.5 5.029l.5 8.5a.5.5 0 1 0 .998-.06l-.5-8.5a.5.5 0 1 0-.998.06m6.53-.528a.5.5 0 0 0-.528.47l-.5 8.5a.5.5 0 0 0 .998.058l.5-8.5a.5.5 0 0 0-.47-.528M8 4.5a.5.5 0 0 0-.5.5v8.5a.5.5 0 0 0 1 0V5a.5.5 0 0 0-.5-.5"/></svg>';
+
     async function carregarNomes() {
-      const res = await fetch(`${SUPABASE_URL}/rest/v1/nomes?select=*`, { headers: HEADERS });
-      const nomes = await res.json();
-      const lista = document.getElementById('listaNomes');
-      lista.innerHTML = '';
-      nomes.forEach(({ id, nome }) => {
-        const li = document.createElement('li');
-        li.innerHTML = `
-          <span contenteditable onblur="atualizarNome('${id}', this.innerText)">${nome}</span>
-          <div class="actions">
-            <button onclick="removerNome('${id}')">Excluir</button>
-          </div>
-        `;
-        lista.appendChild(li);
-      });
+      try {
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/nomes?select=*&order=nome.asc`, { headers: HEADERS });
+        if (!res.ok) throw new Error(`Erro HTTP: ${res.status}`);
+        const nomes = await res.json();
+        
+        listaNomesUI.innerHTML = '';
+        nomes.forEach(({ id, nome }) => {
+          const li = document.createElement('li');
+          li.className = 'list-group-item d-flex justify-content-between align-items-center';
+          li.innerHTML = `
+            <span data-id="${id}">${nome}</span>
+            <div class="actions">
+              <button class="btn btn-sm btn-outline-secondary mr-2" onclick="prepararEdicao('${id}', '${nome.replace(/'/g, "\\\'")}')">${iconEditar} Editar</button>
+              <button class="btn btn-sm btn-outline-danger" onclick="removerNome('${id}')">${iconExcluir} Excluir</button>
+            </div>
+          `;
+          listaNomesUI.appendChild(li);
+        });
+      } catch (error) {
+        console.error("Erro ao carregar nomes:", error);
+        alert("Não foi possível carregar os nomes. Verifique o console para mais detalhes.");
+      }
     }
 
-    async function adicionarNome() {
-      const nome = document.getElementById('nomeInput').value.trim();
-      if (!nome) return alert('Digite um nome.');
-      await fetch(`${SUPABASE_URL}/rest/v1/nomes`, {
-        method: 'POST',
-        headers: HEADERS,
-        body: JSON.stringify({ nome })
-      });
-      document.getElementById('nomeInput').value = '';
-      carregarNomes();
+    function prepararEdicao(id, nomeAtual) {
+      nomeInput.value = nomeAtual;
+      editIdInput.value = id;
+      btnSalvar.innerHTML = iconAtualizar;
+      btnSalvar.classList.remove('btn-primary');
+      btnSalvar.classList.add('btn-success');
+      nomeInput.focus();
     }
 
-    async function atualizarNome(id, novoNome) {
-      if (!novoNome.trim()) return alert('O nome não pode estar vazio.');
-      await fetch(`${SUPABASE_URL}/rest/v1/nomes?id=eq.${id}`, {
-        method: 'PATCH',
-        headers: HEADERS,
-        body: JSON.stringify({ nome: novoNome })
-      });
-      carregarNomes();
+    function resetarFormulario() {
+      nomeInput.value = '';
+      editIdInput.value = '';
+      btnSalvar.innerHTML = iconAdicionar;
+      btnSalvar.classList.remove('btn-success');
+      btnSalvar.classList.add('btn-primary');
+    }
+
+    async function salvarOuAtualizarNome() {
+      const nome = nomeInput.value.trim();
+      const id = editIdInput.value;
+
+      if (!nome) {
+        alert('Digite um nome.');
+        return;
+      }
+
+      try {
+        if (id) { // Atualizar
+          await fetch(`${SUPABASE_URL}/rest/v1/nomes?id=eq.${id}`, {
+            method: 'PATCH',
+            headers: HEADERS,
+            body: JSON.stringify({ nome })
+          });
+        } else { // Adicionar novo
+          await fetch(`${SUPABASE_URL}/rest/v1/nomes`, {
+            method: 'POST',
+            headers: HEADERS,
+            body: JSON.stringify({ nome })
+          });
+        }
+        resetarFormulario();
+        carregarNomes();
+      } catch (error) {
+        console.error("Erro ao salvar/atualizar nome:", error);
+        alert("Não foi possível salvar o nome. Verifique o console para mais detalhes.");
+      }
     }
 
     async function removerNome(id) {
       if (!confirm('Tem certeza que deseja excluir este nome?')) return;
-      await fetch(`${SUPABASE_URL}/rest/v1/nomes?id=eq.${id}`, {
-        method: 'DELETE',
-        headers: HEADERS
-      });
-      carregarNomes();
+      try {
+        await fetch(`${SUPABASE_URL}/rest/v1/nomes?id=eq.${id}`, {
+          method: 'DELETE',
+          headers: HEADERS
+        });
+        // Se o item excluído era o que estava em edição, reseta o formulário
+        if (id === editIdInput.value) {
+          resetarFormulario();
+        }
+        carregarNomes();
+      } catch (error) {
+        console.error("Erro ao remover nome:", error);
+        alert("Não foi possível remover o nome. Verifique o console para mais detalhes.");
+      }
     }
 
     // Carrega nomes ao iniciar
-    carregarNomes();
+    document.addEventListener('DOMContentLoaded', carregarNomes);
   </script>
 </body>
 </html>
