@@ -25,8 +25,7 @@ O sistema manipula uma lista de nomes. As funcionalidades são implementadas da 
     *   Exibição dos nomes na tela.
     *   Edição de nomes existentes.
     *   Remoção de nomes da lista.
-    *   (Opcional: se estiver usando) Interação com o `localStorage` do navegador para persistir os dados, para que não sejam perdidos ao recarregar a página.
-
+    *   Neste projeto estou utilizando o banco de dados SUPABASE com conexao api
 ## Como Usar
 
 1.  Clone este repositório: `git clone <URL_DO_SEU_REPOSITORIO>`
